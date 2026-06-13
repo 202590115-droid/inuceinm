@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>КОСМИЧЕСКАЯ ЛЮБОВЬ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: #0a0a1a;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            padding: 10px;
+        }
+
+        .game-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            height: 100vh;
+            max-height: 600px;
+            border: 3px solid #4ecdc4;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(78, 205, 196, 0.3);
+        }
+
+        #gameCanvas {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, #0a0a1a 0%, #1a1a3a 100%);
+            display: block;
+        }
+
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(10, 10, 26, 0.95);
+            z-index: 10;
+            padding: 20px;
+            text-align: center;
+        }
+
+        #startScreen {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        }
+
+        #gameOverScreen {
+            display: none;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            background: linear-gradient(45deg, #ff6b6b, #ffa36c, #4ecdc4);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #4ecdc4;
+        }
+
+        button {
+            background: linear-gradient(45deg, #ff6b6b, #ffa36c);
+            border: none;
+            border-radius: 25px;
+            color: white;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin: 10px;
+            min-height: 50px;
+            min-width: 150px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin: 15px 0;
+            align-items: center;
+        }
+
+        .control-key {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .stats {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 1rem;
+            z-index: 5;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 8px 12px;
+            border-radius: 10px;
+        }
+
+        .relationship-bar {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 150px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .relationship-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #ffa36c, #4ecdc4);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        .final-stats {
+            text-align: center;
+            margin: 15px 0;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            color: #ffa36c;
+            margin: 8px 0;
+        }
+
+        .message {
+            font-size: 1rem;
+            text-align: center;
+            margin: 15px 0;
+            max-width: 90%;
+            line-height: 1.5;
+            color: #a5b1c2;
+            }
+            .back-btn {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+        }
+
+        .hint {
+            color: #ffa36c;
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+
+        .pause-btn {
+            position: absolute;
+            top: 50px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 15px;
+            cursor: pointer;
+            z-index: 5;
+            font-size: 0.9rem;
+        }
+
+        /* Мобильное управление */
+        .mobile-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            display: none;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 5;
+        }
+
+        .mobile-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid #4ecdc4;
+            color: white;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .shield-btn {
+            background: rgba(78, 205, 196, 0.3);
+        }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .mobile-controls {
+                display: flex;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .subtitle {
+                font-size: 1rem;
+            }
+
+            button {
+                padding: 12px 30px;
+                font-size: 1rem;
+                min-height: 44px;
+                min-width: 120px;
+            }
+        }
+
+        @media (max-height: 500px) {
+            .game-container {
+                max-height: 100vh;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+                margin-bottom: 10px;
+            }
+
+            .subtitle {
+                font-size: 0.9rem;
+                margin-bottom: 10px;
+            }
+
+            .message {
+                font-size: 0.8rem;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <canvas id="gameCanvas"></canvas>
+
+        <div class="stats">
+            <div>Очки: <span id="score">0</span></div>
+            <div>Время: <span id="time">60</span>с</div>
+        </div>
+
+        <div class="relationship-bar">
+            <div class="relationship-fill" id="relationshipBar" style="width: 50%"></div>
+        </div>
+
+        <button class="pause-btn" id="backBtn">← Назад</button>
+
+        <!-- Мобильное управление -->
+        <div class="mobile-controls">
+            <div class="mobile-btn" id="leftBtn">←</div>
+            <div class="mobile-btn shield-btn" id="shieldBtn">🛡</div>
+            <div class="mobile-btn" id="rightBtn">→</div>
+        </div>
+
+        <!-- Стартовый экран -->
+        <div class="screen" id="startScreen">
+            <h1>КОСМИЧЕСКАЯ ЛЮБОВЬ</h1>
+            <div class="subtitle">EXY ❤️ ФАРАНГИЗ</div>
+            <p class="message">
+                EXY и Фарангиз встретились в космосе!<br>
+                Помоги им избегать проблем и собирать моменты счастья!
+                <div class="hint">(найди нужные фигуры и будь осторожен любимый<3)</div>
+            </p>
+
+            <div class="controls">
+                <div class="control-key">← →</div>
+                <div>Движение</div>
+            </div>
+            <div class="controls">
+                <div class="control-key">ПРОБЕЛ / 🛡</div>
+                <div>Защита</div>
+            </div>
+
+            <button id="startBtn">СТАРТ</button>
+        </div>
+        <!-- Экран окончания игры -->
+        <div class="screen" id="gameOverScreen">
+            <h1>ИГРА ОКОНЧЕНА</h1>
+            <div class="final-stats">
+                <div>Ваш счет:</div>
+                <div class="stat-value" id="finalScore">0</div>
+                <div>Уровень отношений:</div>
+                <div class="stat-value" id="finalRelationship">50%</div>
+            </div>
+            <p class="message" id="endMessage"></p>
+            <div class="controls">
+                <button id="restartBtn">ИГРАТЬ СНОВА</button>
+                <button class="back-btn" id="menuBtn">МЕНЮ</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Ой, опять этот canvas... надеюсь сегодня все заработает
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Надо бы размеры правильно установить, а то опять все поплывет
+        function setupCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            console.log('Размеры установлены:', canvas.width, canvas.height); // На всякий случай посмотрю
+        }
+
+        setupCanvas();
+        window.addEventListener('resize', setupCanvas);
+
+        // Получаем все элементы - главное ничего не перепутать
+        const startScreen = document.getElementById('startScreen');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const startBtn = document.getElementById('startBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const menuBtn = document.getElementById('menuBtn');
+        const backBtn = document.getElementById('backBtn');
+        const scoreEl = document.getElementById('score');
+        const timeEl = document.getElementById('time');
+        const relationshipBar = document.getElementById('relationshipBar');
+        const finalScoreEl = document.getElementById('finalScore');
+        const finalRelationshipEl = document.getElementById('finalRelationship');
+        const endMessageEl = document.getElementById('endMessage');
+
+        // Кнопки для телефона - надеюсь, хоть это сработает
+        const leftBtn = document.getElementById('leftBtn');
+        const rightBtn = document.getElementById('rightBtn');
+        const shieldBtn = document.getElementById('shieldBtn');
+
+        // Переменные игры - столько всего нужно отслеживать, голова кругом
+        let score = 0;
+        let gameTime = 60;
+        let relationship = 50;
+        let gameActive = false;
+        let gameLoop;
+
+        // Наши главные герои - EXY и Фарангиз
+        const player = {
+            x: canvas.width / 2 - 25,
+            y: canvas.height - 100,
+            width: 50,
+            height: 50,
+            speed: 5,
+            color: '#4ecdc4',
+            isShielding: false,
+            shieldTime: 0
+        };
+
+        // Тут будем хранить все что летает по экрану
+        let hearts = []; // Моменты счастья
+        let problems = []; // Проблемы отношений
+        let particles = []; // Частички для красоты
+        let stars = []; // Звездочки на фон
+
+        // Для мобильного управления
+        let mobileKeys = {
+            left: false,
+            right: false
+        };
+
+        // Настройка управления для телефона - ох, эти тач-события...
+        function setupMobileControls() {
+            // Левая кнопка
+            leftBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                mobileKeys.left = true;
+                console.log('Левая кнопка нажата'); // Проверим работает ли
+            });
+
+            leftBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                mobileKeys.left = false;
+            });
+
+            // Правая кнопка
+            rightBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                mobileKeys.right = true;
+                console.log('Правая кнопка нажата');
+            });
+            rightBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                mobileKeys.right = false;
+            });
+
+            // Кнопка щита
+            shieldBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (gameActive) {
+                    activateShield();
+                    console.log('Щит активирован!');
+                }
+            });
+        }
+
+        // Функция для активации щита - надеюсь, будет работать
+        function activateShield() {
+            player.isShielding = true;
+            player.shieldTime = 30; // Щит работает 0.5 секунды
+        }
+
+        // Создаем звездочки для красоты - люблю эту часть
+        function createStars() {
+            stars = [];
+            for (let i = 0; i < 50; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 2 + 1,
+                    speed: Math.random() * 0.5 + 0.1
+                });
+            }
+            console.log('Создала звездочки, красиво должно быть');
+        }
+
+        // Рисуем звезды - тут вроде все просто
+        function drawStars() {
+            ctx.fillStyle = 'white';
+            stars.forEach(star => {
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Двигаем звезды вниз для эффекта полета
+                star.y += star.speed;
+                if (star.y > canvas.height) {
+                    star.y = 0;
+                    star.x = Math.random() * canvas.width;
+                }
+            });
+        }
+
+        // Создаем сердечки - моменты счастья в отношениях
+        function createHeart() {
+            hearts.push({
+                x: Math.random() * (canvas.width - 30),
+                y: -30,
+                width: 30,
+                height: 30,
+                speed: 2 + Math.random() * 2,
+                color: '#ff6b6b'
+            });
+        }
+
+        // Создаем проблемы - без них никуда в отношениях
+        function createProblem() {
+            const types = [
+                { color: '#ff4757', speed: 3, size: 40 }, // Серьезные проблемы
+                { color: '#ffa502', speed: 2, size: 30 }, // Средние проблемы
+                { color: '#2ed573', speed: 1.5, size: 25 } // Легкие проблемы
+            ];
+
+            const type = types[Math.floor(Math.random() * types.length)];
+
+            problems.push({
+                x: Math.random() * (canvas.width - type.size),
+                y: -type.size,
+                width: type.size,
+                height: type.size,
+                speed: type.speed,
+                color: type.color
+            });
+        }
+
+        // Частички для красивых эффектов - обожаю эту магию!
+        function createParticles(x, y, color, count = 10) {
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    size: Math.random() * 3 + 1,
+                    speedX: (Math.random() - 0.5) * 4,
+                    speedY: (Math.random() - 0.5) * 4,
+                    color: color,
+                    life: 1
+                });
+            }
+        }
+
+        // Рисуем наших влюбленных - EXY и Фарангиз
+        function drawPlayer() {
+            // Рисуем сердце как символ их любви
+            ctx.save();
+            ctx.translate(player.x + player.width/2, player.y + player.height/2);
+            ctx.rotate(Math.PI/4); // Поворачиваем чтобы получилось сердце
+
+            ctx.fillStyle = player.color;
+            ctx.fillRect(-player.width/2, -player.height/2, player.width, player.height);
+
+            // Если защита активна - рисуем щит вокруг
+            if (player.isShielding) {
+                ctx.strokeStyle = '#4ecdc4';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(0, 0, player.width, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            ctx.restore();
+
+            // Подписываем чтобы не забыть кто есть кто
+            ctx.fillStyle = 'white';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('EXY & Фарангиз', player.x + player.width/2, player.y + player.height + 20);
+        }
+
+        // Обработка сердечек - моя любимая часть!
+        function drawHearts() {
+            for (let i = hearts.length - 1; i >= 0; i--) {
+                const heart = hearts[i];
+
+                // Рисуем простое сердечко
+                ctx.fillStyle = heart.color;
+                ctx.beginPath();
+                ctx.arc(heart.x + 15, heart.y + 15, 15, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Двигаем сердечко вниз
+                heart.y += heart.speed;
+
+                // Проверяем столкновение с игроком
+                if (checkCollision(player, heart)) {
+                    hearts.splice(i, 1);
+                    score += 10;
+                    relationship = Math.min(100, relationship + 5);
+                    createParticles(heart.x + 15, heart.y + 15, '#ff6b6b', 15);
+                    console.log('Поймала сердечко! +10 очков');
+                    continue;
+                }
+
+                // Удаляем если улетело за экран
+                if (heart.y > canvas.height) {
+                    hearts.splice(i, 1);
+                }
+            }
+        }
+
+        // Отрисовка проблем - вечные проблемы в отношениях...
+        function drawProblems() {
+            for (let i = problems.length - 1; i >= 0; i--) {
+                const problem = problems[i];
+
+                // Рисуем проблему в виде кристалла
+                ctx.fillStyle = problem.color;
+                ctx.beginPath();
+                ctx.moveTo(problem.x + problem.width/2, problem.y);
+                ctx.lineTo(problem.x + problem.width, problem.y + problem.height/3);
+                ctx.lineTo(problem.x + problem.width, problem.y + 2*problem.height/3);
+                ctx.lineTo(problem.x + problem.width/2, problem.y + problem.height);
+                ctx.lineTo(problem.x, problem.y + 2*problem.height/3);
+                ctx.lineTo(problem.x, problem.y + problem.height/3);
+                ctx.closePath();
+                ctx.fill();
+
+                // Двигаем проблему
+                problem.y += problem.speed;
+
+                // Проверяем столкновение
+                if (checkCollision(player, problem)) {
+                    if (player.isShielding) {
+                        // Ура, защита сработала!
+                        problems.splice(i, 1);
+                        createParticles(problem.x + problem.width/2, problem.y + problem.height/2, '#4ecdc4', 20);
+                        score += 5;
+                        console.log('Защита сработала! +5 очков');
+                    } else {
+                        // Ой, попали в проблему...
+                        problems.splice(i, 1);
+                        relationship -= 10;
+                        createParticles(problem.x + problem.width/2, problem.y + problem.height/2, problem.color, 15);
+                        console.log('Попала в проблему... -10 к отношениям');
+
+                        if (relationship <= 0) {
+                            gameOver();
+                        }
+                    }
+                    continue;
+                }
+
+                // Удаляем улетевшие проблемы
+                if (problem.y > canvas.height) {
+                    problems.splice(i, 1);
+                }
+            }
+        }
+
+        // Отрисовка частиц - делают игру такой живой и красивой
+        function drawParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const particle = particles[i];
+
+                ctx.fillStyle = particle.color;
+                ctx.globalAlpha = particle.life;
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                ctx.fill();
+                // Двигаем частичку
+                particle.x += particle.speedX;
+                particle.y += particle.speedY;
+                particle.life -= 0.02;
+
+                // Удаляем старые частички
+                if (particle.life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+            ctx.globalAlpha = 1;
+        }
+
+        // Проверка столкновений - вечная головная боль
+        function checkCollision(rect1, rect2) {
+            return rect1.x < rect2.x + rect2.width &&
+                   rect1.x + rect1.width > rect2.x &&
+                   rect1.y < rect2.y + rect2.height &&
+                   rect1.y + rect1.height > rect2.y;
+        }
+
+        // Управление с клавиатуры - надеюсь, все клавиши работают
+        const keys = {};
+
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+
+            if (e.code === 'Space' && gameActive) {
+                activateShield();
+                console.log('Пробел нажат - щит активирован!');
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        // Обработка ввода - и с клавиатуры и с телефона
+        function handleInput() {
+            // Движение влево
+            if (keys['ArrowLeft']  keys['a']  mobileKeys.left) {
+                player.x = Math.max(0, player.x - player.speed);
+            }
+            // Движение вправо
+            if (keys['ArrowRight']  keys['d']  mobileKeys.right) {
+                player.x = Math.min(canvas.width - player.width, player.x + player.speed);
+            }
+
+            // Обновление щита
+            if (player.isShielding) {
+                player.shieldTime--;
+                if (player.shieldTime <= 0) {
+                    player.isShielding = false;
+                }
+            }
+        }
+
+        // Главная функция обновления игры - тут все и происходит
+        function updateGame() {
+            handleInput();
+
+            // Случайно создаем сердечки
+            if (Math.random() < 0.02) {
+                createHeart();
+            }
+            // Случайно создаем проблемы
+            if (Math.random() < 0.03) {
+                createProblem();
+            }
+
+            // Время идет...
+            gameTime -= 1/60;
+            if (gameTime <= 0) {
+                gameOver();
+            }
+
+            // Обновляем интерфейс
+            scoreEl.textContent = score;
+            timeEl.textContent = Math.ceil(gameTime);
+            relationshipBar.style.width = relationship + '%';
+        }
+
+        // Игровой цикл - сердце всей игры
+        function game() {
+            if (!gameActive) return;
+
+            // Очищаем экран
+            ctx.fillStyle = 'rgba(10, 10, 26, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Рисуем все по порядку
+            drawStars();
+            drawHearts();
+            drawProblems();
+            drawParticles();
+            drawPlayer();
+
+            // Обновляем игру
+            updateGame();
+
+            // Запускаем следующий кадр
+            gameLoop = requestAnimationFrame(game);
+        }
+
+        // Начало игры - всегда так волнительно!
+        function startGame() {
+            console.log('Запускаю игру... надеюсь все работает!');
+
+            // Сбрасываем все переменные
+            score = 0;
+            gameTime = 60;
+            relationship = 50;
+            gameActive = true;
+
+            // Очищаем массивы
+            hearts = [];
+            problems = [];
+            particles = [];
+
+            // Ставим игрока по центру
+            player.x = canvas.width / 2 - 25;
+            player.y = canvas.height - 100;
+            player.isShielding = false;
+
+            // Прячем экраны
+            startScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+
+            // Создаем красивый фон
+            createStars();
+
+            // Запускаем игровой цикл
+            gameLoop = requestAnimationFrame(game);
+
+            console.log('Игра запущена! Ура!');
+        }
+        // Конец игры... всегда немного грустно
+        function gameOver() {
+            gameActive = false;
+            cancelAnimationFrame(gameLoop);
+
+            // Обновляем финальный экран
+            finalScoreEl.textContent = score;
+            finalRelationshipEl.textContent = relationship + '%';
+
+            // Выбираем сообщение в зависимости от результата
+            if (relationship >= 80) {
+                endMessageEl.textContent = 'Идеальные отношения! EXY и Фарангиз счастливы вместе!';
+            } else if (relationship >= 50) {
+                endMessageEl.textContent = 'Хорошие отношения! Есть куда стремиться.';
+            } else {
+                endMessageEl.textContent = 'Сложные времена... Но любовь победит!';
+            }
+
+            // Показываем экран окончания
+            gameOverScreen.style.display = 'flex';
+
+            console.log('Игра окончена. Счет:', score, 'Отношения:', relationship + '%');
+        }
+
+        // Обработчики кнопок - главное чтобы сработали!
+        startBtn.addEventListener('click', startGame);
+        restartBtn.addEventListener('click', startGame);
+
+        menuBtn.addEventListener('click', () => {
+            gameOverScreen.style.display = 'none';
+            startScreen.style.display = 'flex';
+        });
+
+        backBtn.addEventListener('click', () => {
+            if (gameActive) {
+                gameActive = false;
+                cancelAnimationFrame(gameLoop);
+                startScreen.style.display = 'flex';
+                console.log('Вернулись в меню');
+            }
+        });
+
+        // Инициализация при загрузке
+        createStars();
+        setupMobileControls();
+
+        // Предотвращение скролла на мобильных - чтобы не мешал играть
+        document.addEventListener('touchmove', (e) => {
+            if (gameActive) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        console.log('Игра инициализирована! Можно начинать!');
+    </script>
+</body>
+</html>
